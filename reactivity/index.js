@@ -1,5 +1,7 @@
 // 用一个全局变量存储被注册的副作用函数
 let activeEffect
+// effect 栈
+const effectStack = []
 
 // 存储副作用函数的桶
 // weakMap 经常用于存储那些只有当 key 所引用的对象存在时（没有被回收）才有价值的信息
@@ -12,9 +14,14 @@ const data = { ok: true, foo: 'hello world' }
 function effect (fn) {
   const effectFn = () => {
     cleanup(effectFn)
-    // 当 effectFn 执行时，将其设置为当前激活的副作用函数
+    // 调用 effect 注册副作用函数时，将副作用函数赋值给 activeEffect
     activeEffect = effectFn
+    // 在调用副作用函数执行之前将当前副作用函数压入栈中
+    effectStack.push(effectFn)
     fn()
+    // 在当前副作用函数执行完毕后，弹出栈，并将 activeEffect 还原为之前的值
+    effectStack.pop()
+    activeEffect = effectStack[effectStack.length - 1]
   }
   // activeEffects.deps 用来存储所有与该副作用函数相关联的依赖集合
   effectFn.deps = []

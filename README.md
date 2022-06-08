@@ -33,5 +33,11 @@ effect(function effectFn() {
 obj.ok = false
 ```
 
-<!-- [代码实现]() -->
+[代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/18bfa8a01bb1f26234c3c02669def663a7f56952/reactivity/index.js)
 ![主要思路](./reactivity/img/switch-proxy.png)
+
+### 响应式数据如果存在嵌套怎么处理？
+
+<!-- [代码实现] -->
+
+主要思路是新增一个栈，栈底存储外层副作用函数，栈顶存储内层副作用函数
