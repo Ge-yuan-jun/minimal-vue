@@ -44,4 +44,8 @@ obj.ok = false
 
 ### 如何业务代码导致的无限递归循环？
 
+[代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/0cb5eab316a1014ba65eb487d89cc1fafc6523c2/reactivity/index.js)
+
+### 如何实现自定义调度执行？
+
 <!-- [代码实现]() -->

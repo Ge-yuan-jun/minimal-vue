@@ -8,10 +8,10 @@ const effectStack = []
 const bucket = new WeakMap()
 
 // 原始数据
-const data = { ok: true, foo: 'hello world' }
+const data = { foo: 1 }
 
 // effect 函数用于注册副作用函数
-function effect (fn) {
+function effect (fn, options = {}) {
   const effectFn = () => {
     cleanup(effectFn)
     // 调用 effect 注册副作用函数时，将副作用函数赋值给 activeEffect
@@ -23,6 +23,7 @@ function effect (fn) {
     effectStack.pop()
     activeEffect = effectStack[effectStack.length - 1]
   }
+  effectFn.options = options
   // activeEffects.deps 用来存储所有与该副作用函数相关联的依赖集合
   effectFn.deps = []
   // 执行副作用函数
@@ -87,7 +88,15 @@ function trigger (target, key) {
     }
   })
 
-  effectsToRun.forEach(effectFn => effectFn())
+  effectsToRun.forEach(effectFn => {
+    if (effectFn.options.scheduler) {
+      // 如果存在调度器，则将副作用函数作为参数传递
+      effectFn.options.scheduler(effectFn)
+    } else {
+      // 默认行为
+      effectFn()
+    }
+  })
 }
 
 function cleanup (effectFn) {
@@ -102,13 +111,33 @@ function cleanup (effectFn) {
   effectFn.deps.length = 0
 }
 
-effect(() => {
-  console.log('effectFn1 执行')
-  effect(() => {
-    console.log('effectFn2 执行')
+//----------------------------
+
+// 定义任务队列
+const jobQueue = new Set()
+// 创建一个 promise 实例，用来添加到微任务序列
+const p = Promise.resolve()
+
+let isFlushing = false
+function flushJob () {
+  if (isFlushing) return
+  isFlushing = true
+
+  p.then(() => {
+    jobQueue.forEach(job => job())
+  }).finally(() => {
+    isFlushing = false
   })
+}
+
+effect(() => {
+  console.log(obj.foo)
+}, {
+  scheduler (fn) {
+    jobQueue.add(fn)
+    flushJob()
+  }
 })
 
-setTimeout(() => {
-  obj.foo = 'hello, vue3'
-}, 1000)
+obj.foo++
+obj.foo++
