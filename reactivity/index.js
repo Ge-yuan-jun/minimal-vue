@@ -8,7 +8,7 @@ const effectStack = []
 const bucket = new WeakMap()
 
 // 原始数据
-const data = { foo: 1 }
+const data = { foo: 1, bar: 2 }
 
 // effect 函数用于注册副作用函数
 function effect (fn, options = {}) {
@@ -18,16 +18,22 @@ function effect (fn, options = {}) {
     activeEffect = effectFn
     // 在调用副作用函数执行之前将当前副作用函数压入栈中
     effectStack.push(effectFn)
-    fn()
+    const res = fn()
     // 在当前副作用函数执行完毕后，弹出栈，并将 activeEffect 还原为之前的值
     effectStack.pop()
     activeEffect = effectStack[effectStack.length - 1]
+    
+    return res
   }
   effectFn.options = options
   // activeEffects.deps 用来存储所有与该副作用函数相关联的依赖集合
   effectFn.deps = []
-  // 执行副作用函数
-  effectFn()
+  if (!options.lazy) {
+    // 执行副作用函数
+    effectFn()
+  }
+  // 如果带有 lazy 标志，则将函数返回，交于业务方执行
+  return effectFn
 }
 
 // 代理
@@ -113,31 +119,42 @@ function cleanup (effectFn) {
 
 //----------------------------
 
-// 定义任务队列
-const jobQueue = new Set()
-// 创建一个 promise 实例，用来添加到微任务序列
-const p = Promise.resolve()
+// 实现 computed
+function computed (getter) {
+  // 缓存上一次计算的值
+  let value
+  // dirty: true 表示需要重新计算
+  let dirty = true
 
-let isFlushing = false
-function flushJob () {
-  if (isFlushing) return
-  isFlushing = true
-
-  p.then(() => {
-    jobQueue.forEach(job => job())
-  }).finally(() => {
-    isFlushing = false
+  const effectFn = effect(getter, {
+    lazy: true,
+    scheduler () {
+      if (!dirty) {
+        dirty = true
+        trigger(obj, 'value')
+      }
+    }
   })
+
+  const obj = {
+    // 只有读取的时候才会触发执行 effectFn
+    get value () {
+      if (dirty) {
+        value = effectFn()
+        dirty = false
+      }
+      track(obj, 'value')
+      return value
+    }
+  }
+
+  return obj
 }
 
-effect(() => {
-  console.log(obj.foo)
-}, {
-  scheduler (fn) {
-    jobQueue.add(fn)
-    flushJob()
-  }
-})
+const sumRes = computed(() => obj.foo + obj.bar)
+
+console.log(sumRes.value)
 
 obj.foo++
-obj.foo++
+
+console.log(sumRes.value)

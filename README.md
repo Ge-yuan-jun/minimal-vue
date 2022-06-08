@@ -48,4 +48,6 @@ obj.ok = false
 
 ### 如何实现自定义调度执行？
 
-<!-- [代码实现]() -->
+[代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/66ad73111b3ff2ab77e508a2c3f59b9f6ab46630/reactivity/index.js)
+
+### 如何实现 lazy、computed、watch？
