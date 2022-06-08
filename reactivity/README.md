@@ -8,7 +8,7 @@
 
 [代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/543172d95762aeeb8432dcbb3bea9a143a41bc73/reactivity/index.ts)
 
-#### 副作用函数与被操作的目标字段之间简历明确的联系
+#### 副作用函数与被操作的目标字段之间建立明确的联系
 
 [代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/d79236c3fa16bfb1e58cf135d32cd341cf9e3bc0/reactivity/index.ts)
 
