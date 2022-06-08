@@ -38,6 +38,10 @@ obj.ok = false
 
 ### 响应式数据如果存在嵌套怎么处理？
 
-<!-- [代码实现] -->
+[代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/d4e25a51f0d6336e0cfe50dc2415ef27b452c0d5/reactivity/index.js)
 
 主要思路是新增一个栈，栈底存储外层副作用函数，栈顶存储内层副作用函数
+
+### 如何业务代码导致的无限递归循环？
+
+<!-- [代码实现]() -->

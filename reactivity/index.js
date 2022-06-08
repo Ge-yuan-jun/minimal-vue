@@ -79,7 +79,13 @@ function trigger (target, key) {
   // 根据 key 取的所有副作用函数 effects
   const effects = depsMap.get(key)
   // 执行副作用函数
-  const effectsToRun = new Set(effects)
+  const effectsToRun = new Set()
+  effects && effects.forEach(effectFn => {
+    // 如果 trigger 触发的副作用函数与当前正在执行的副作用函数相同，则不触发执行
+    if (effectFn !== activeEffect) {
+      effectsToRun.add(effectFn)
+    }
+  })
 
   effectsToRun.forEach(effectFn => effectFn())
 }
@@ -97,9 +103,12 @@ function cleanup (effectFn) {
 }
 
 effect(() => {
-  console.log(obj.foo)
+  console.log('effectFn1 执行')
+  effect(() => {
+    console.log('effectFn2 执行')
+  })
 })
 
 setTimeout(() => {
-  obj.foo = obj.ok ? 'hello, vue3' : 'hello, not'
+  obj.foo = 'hello, vue3'
 }, 1000)
