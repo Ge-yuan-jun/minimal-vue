@@ -1,2 +1,1 @@
 # minimal-vue
-# minimal-vue
