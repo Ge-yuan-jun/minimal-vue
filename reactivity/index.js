@@ -131,6 +131,7 @@ function computed (getter) {
     scheduler () {
       if (!dirty) {
         dirty = true
+        // 当计算属性依赖的响应式数据变化时，手动触发 trigger 响应
         trigger(obj, 'value')
       }
     }
@@ -143,6 +144,7 @@ function computed (getter) {
         value = effectFn()
         dirty = false
       }
+      // 当读取 value 时，手动调用 track 函数进行追踪
       track(obj, 'value')
       return value
     }
@@ -153,8 +155,78 @@ function computed (getter) {
 
 const sumRes = computed(() => obj.foo + obj.bar)
 
-console.log(sumRes.value)
+// console.log(sumRes.value)
 
-obj.foo++
+// obj.foo++
 
-console.log(sumRes.value)
+// console.log(sumRes.value)
+
+//--------------------------- 实现 watch
+function watch (source, cb, options = {}) {
+  let getter
+  // 如果 source 是函数，说明用户传递的是 getter，所以直接把 source 赋值给 getter
+  if (typeof source === 'function') {
+    getter = source
+  } else {
+    getter = () => traverse(source)
+  }
+
+  // 如何获取新值与旧值？
+
+  let oldValue, newValue
+
+  const job = () => {
+     // 在scheduler 中重新执行副作用函数，得到的值是新值
+     newValue = effectFn()
+     // 将旧值与新值作为回调函数的参数
+     cb(newValue, oldValue)
+     // 更新旧值，否则下一次得到的是错误的旧值
+     oldValue = newValue
+  }
+
+  // 使用 effect 注册副作用函数时，开启 lazy 选项，并把返回值存储到 effectFn 中以便后序手动调用
+  const effectFn = effect(() => getter(), {
+    lazy: true,
+    scheduler () {
+      if (options.flush === 'post') {
+        // 将 job 放入微任务队列，实现异步执行
+        const p = Promise.resolve()
+        p.then(job)
+      } else {
+        job()
+      }
+    }
+  })
+
+  // 如果传入参数 immediate，代表需要立即执行 watch 函数
+  if (options.immediate) {
+    job()
+  } else {
+    oldValue = effectFn()
+  }
+}
+
+function traverse (value, seen = new Set()) {
+  // 如果要读取的数据是原始值，或者已经被读取过，那么什么都不做
+  if (typeof value !== 'object' || value == null || seen.has(value)) return
+  // 将数据添加到 seen 中，代表遍历地读取过了，避免循环引用引起的死循环
+  seen.add(value)
+  // 暂时不考虑数组等其他结构
+  // 假设 value 就是一个对象，使用 for in 读取对象的每一个值，并递归地调用 traverse 进行处理
+  for (const k in value) {
+    traverse(value[k], seen)
+  }
+
+  return value
+}
+
+watch(() => obj.foo, (newVal, oldVal) => {
+  console.log(newVal, oldVal)
+}, {
+  immediate: true,
+  // flush: 'post'
+})
+
+setTimeout(() => {
+  obj.foo++
+}, 1000)

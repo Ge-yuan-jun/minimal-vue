@@ -33,6 +33,8 @@ effect(function effectFn() {
 obj.ok = false
 ```
 
+分支切换会导致冗余副作用，进行不必要的更新。需要在每次副作用重新执行之前，清理上一次简历的响应联系。当副作用函数重新执行之后，再次新的响应联系。
+
 [代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/18bfa8a01bb1f26234c3c02669def663a7f56952/reactivity/index.js)
 ![主要思路](./reactivity/img/switch-proxy.png)
 
@@ -44,10 +46,23 @@ obj.ok = false
 
 ### 如何业务代码导致的无限递归循环？
 
+如果 trigger 触发执行的副作用函数与当前正在执行的副作用函数相同，则不触发执行
+
 [代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/0cb5eab316a1014ba65eb487d89cc1fafc6523c2/reactivity/index.js)
 
 ### 如何实现自定义调度执行？
 
+可调度性：用户可以通过调用调度器自行完成任务的调度
+
 [代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/66ad73111b3ff2ab77e508a2c3f59b9f6ab46630/reactivity/index.js)
 
-### 如何实现 lazy、computed、watch？
+### 如何实现 computed、watch？
+
+这两者的实现都依赖 lazy 特性的实现：具体原理是只在需要的时候才手动调用副作用函数，或者其值
+
+computed 本质实际上是一个懒执行的副作用函数
+
+[computed 代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/2868cfe3181c4cdd73bc5715532877adef58e9fe/reactivity/index.js)
+
+watch 本质上利用了副作用函数重新执行时的可调度性
+<!-- [watch 代码实现]() -->
