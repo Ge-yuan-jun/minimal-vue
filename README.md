@@ -65,4 +65,5 @@ computed 本质实际上是一个懒执行的副作用函数
 [computed 代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/2868cfe3181c4cdd73bc5715532877adef58e9fe/reactivity/index.js)
 
 watch 本质上利用了副作用函数重新执行时的可调度性
-<!-- [watch 代码实现]() -->
+
+[watch 代码实现](https://github.com/Ge-yuan-jun/minimal-vue/blob/4d19fc6f4f39abeb7702cc89554bc91c1027a7bc/reactivity/index.js)
